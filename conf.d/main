@@ -1,0 +1,12 @@
+#!/bin/sh -ex
+
+W2PROOT=/var/www/web2py
+
+# set welcome as web2py default application
+cat >$W2PROOT/routes.py<<EOF
+#!/usr/bin/python
+default_application = 'welcome'
+EOF
+
+chown www-data:www-data $W2PROOT/routes.py
+
