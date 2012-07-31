@@ -1,0 +1,38 @@
+turnkey-web2py-12.0 (1) turnkey; urgency=low
+
+  * Initial public release of TurnKey web2py.
+
+  * Set web2py admin console password on firstboot (convenience, security).
+
+  * Regenerates all secrets during installation / firstboot (security).
+
+  * Apache related:
+  
+    - Configured to use WSGI to serve web2py applications (performance).
+    - Force admin console to be served via SSL (security).
+
+  * MySQL related:
+
+    - Set MySQL root password on firstboot (convenience, security).
+    - Force MySQL to use Unicode/UTF8.
+    - Includes Webmin MySQL module for convenience.
+
+  * SSL support out of the box.
+
+  * Includes postfix MTA (bound to localhost) for sending of email. Also
+    includes webmin postfix module for convenience.
+
+  * Major component versions
+    
+    web2py              1.99.7 (upstream archive)
+    apache2             2.2.16-6+squeeze7
+    libapache2-mod-wsgi 3.3-2
+    mysql-server        5.1.63-0+squeeze1
+    python-mysqldb      1.2.2-10+b1
+    ipython             0.10-2
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Alon Swartz <alon@turnkeylinux.org>  Wed, 01 Aug 2012 08:00:00 +0200
+
