@@ -1,3 +1,14 @@
+turnkey-web2py-14.0 (1) turnkey; urgency=low
+
+  * Web2py:
+
+    - Latest upstream version of Web2py.
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Anton Pyrogovskyi <q@dae.pp.ua>  Tue, 19 May 2015 20:10:13 +0300
+
 turnkey-web2py-13.0 (1) turnkey; urgency=low
 
   * Web2py:
