@@ -28,4 +28,4 @@ Credentials *(passwords set at first boot)*
 
 
 .. _web2py: http://www.web2py.com/
-.. _TurnKey Core: http://www.turnkeylinux.org/core
+.. _TurnKey Core: https://www.turnkeylinux.org/core
