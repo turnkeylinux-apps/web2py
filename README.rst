@@ -13,6 +13,13 @@ and on top of that:
 - web2py configurations:
    
    - Installed from upstream source code to /var/www/web2py
+
+     **Security note**: Updates to web2py may require supervision so
+     they **ARE NOT** configured to install automatically. Using the "upgrade
+     now" button (within the webUI admin area) is the easiest way. Otherwise,
+     please see the `web2py documentation`_ for further info on
+     upgrading.
+
    - Serve web2py applications with WSGI on Apache.
    - Force admin console to be served via SSL.
 
@@ -29,3 +36,4 @@ Credentials *(passwords set at first boot)*
 
 .. _web2py: http://www.web2py.com/
 .. _TurnKey Core: https://www.turnkeylinux.org/core
+.. _web2py documentation: http://web2py.com/books/default/chapter/29/14/other-recipes#Upgrading
