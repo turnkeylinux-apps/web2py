@@ -2,11 +2,13 @@
 
 W2PROOT=/var/www/web2py
 
+# set Web2py to use python3 by default
+turnkey-web2py-pyver py3
+
 # set welcome as web2py default application
 cat >$W2PROOT/routes.py<<EOF
-#!/usr/bin/python
+#!/usr/bin/env python
 default_application = 'welcome'
 EOF
 
 chown www-data:www-data $W2PROOT/routes.py
-
