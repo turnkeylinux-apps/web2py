@@ -5,7 +5,7 @@ turnkey-web2py-16.0 (1) turnkey; urgency=low
 
   * Provider helper script; 'turnkey-web2py-pyver`. A script to switch running
     Web2py between python2 & python3. This Web2py appliance defaults to
-    python3.
+    python3. Closes #1371.
 
   * Explcitly disable TLS<1.2 (i.e. SSLv3, TLSv1, TLSv1.1). (v15.x
     TurnKey releases supported TLS 1.2, but could fallback as low as TLSv1).
