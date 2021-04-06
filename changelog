@@ -1,9 +1,18 @@
+turnkey-web2py-16.1 (1) turnkey; urgency=low
+
+  * Install latest Web2py (via git) - v2.21.1.
+
+  * Note: Please refer to turnkey-core's 16.1 changelog for changes common to
+    all appliances. Here we only describe changes specific to this appliance.
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Thu, 01 Apr 2021 17:30:48 +1100
+
 turnkey-web2py-16.0 (1) turnkey; urgency=low
 
   * Latest upstream Web2py (via git) - v2.20.4.
     [ Stefan Davis <stefan@turnkeylinux.org> ]
 
-  * Provider helper script; 'turnkey-web2py-pyver`. A script to switch running
+  * Provide helper script; 'turnkey-web2py-pyver`. A script to switch running
     Web2py between python2 & python3. This Web2py appliance defaults to
     python3. Closes #1371.
 
