@@ -1,13 +1,17 @@
 turnkey-web2py-17.0 (1) turnkey; urgency=low
 
-  * Install latest Web2py (via git) - v2.22.3.
+  * Install latest Web2py (via git) - v2.22.5.
+    [ Zhenya Hvorostian <zhenya@turnkeylinux.org> ]
 
   * Remove turnkey-web2py-pyver convenience script.
+    [ Zhenya Hvorostian <zhenya@turnkeylinux.org> ]
+
+  * Fix Apache conf so users can access /admin area - closes #1601.
 
   * Note: Please refer to turnkey-core's 17.0 changelog for changes common to
     all appliances. Here we only describe changes specific to this appliance.
 
- -- Zhenya Hvorostian <zhenya@turnkeylinux.org>  Sat, 19 Feb 2022 01:11:11 +0300
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Thu, 15 Dec 2022 02:56:59 +0000
 
 turnkey-web2py-16.1 (1) turnkey; urgency=low
 
