@@ -1,3 +1,13 @@
+turnkey-web2py-17.1 (1) turnkey; urgency=low
+
+  * Updated all Debian packages to latest.
+    [ autopatched by buildtasks ]
+
+  * Patched bugfix release. Closes #1734.
+    [ autopatched by buildtasks ]
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Thu, 15 Dec 2022 03:33:40 +0000
+
 turnkey-web2py-17.0 (1) turnkey; urgency=low
 
   * Install latest Web2py (via git) - v2.22.5.
