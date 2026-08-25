@@ -86,7 +86,8 @@ with open(f"{root}/.turnkey-db", encoding="utf-8") as stream:
     uri = stream.read().strip().split("=", 1)[1]
 db = DAL(uri, migrate=False)
 rows = db.executesql("SELECT message FROM turnkey_status WHERE id = 1")
-assert rows == [("Database connectivity verified",)]
+assert len(rows) == 1
+assert rows[0][0] == "Database connectivity verified"
 db.close()
 PY
 
