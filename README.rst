@@ -12,16 +12,18 @@ and on top of that:
 
 - web2py configurations:
    
-   - Installed from upstream source code to /var/www/web2py
+   - Web2py 3 is installed from a pinned official upstream release in
+     ``/var/www/web2py``.
 
      **Security note**: Updates to web2py may require supervision so
-     they **ARE NOT** configured to install automatically. Using the "upgrade
-     now" button (within the webUI admin area) is the easiest way. Otherwise,
-     please see the `web2py documentation`_ for further info on
-     upgrading.
+     they **ARE NOT** configured to install automatically. Run
+     ``web2py-update --check`` to inspect the supported Web2py 3 channel.
+     Back up the appliance and review the upstream changes before running
+     ``web2py-update --apply``.
 
    - Serve web2py applications with WSGI on Apache.
    - Force admin console to be served via SSL.
+   - Include a MariaDB connection for database-driven Web2py applications.
 
 - SSL support out of the box.
 - Postfix MTA (bound to localhost) to allow sending of email (e.g.,

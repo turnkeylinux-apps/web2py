@@ -1,3 +1,17 @@
+turnkey-web2py-19.0 (1) turnkey; urgency=low
+
+  * Install the supported Web2py 3.3.3 release from its pinned official Git
+    tag and recorded submodule commits.
+
+  * Add a supervised Web2py 3.x update command.
+
+  * Preserve the Apache WSGI, HTTPS administration, and MariaDB application
+    boundaries on Debian 13 Trixie.
+
+  * See turnkey-core's 19.0 changelog for common platform changes.
+
+ -- TurnKey Linux maintainers <release@turnkeylinux.org>  Tue, 25 Aug 2026 00:00:00 +0000
+
 turnkey-web2py-18.0 (1) turnkey; urgency=low
 
   * Install web2py from upstream git: v2.27.1.
