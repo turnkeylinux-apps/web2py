@@ -105,11 +105,14 @@ source_tmp=$(mktemp "$SOURCE.XXXXXX")
     printf 'tag=%s\n' "$latest_tag"
     printf 'commit=%s\n' "$latest_commit"
     printf 'pydal_commit=%s\n' \
-        "$(git -C "$WEBROOT/gluon/packages/pydal" rev-parse HEAD)"
+        "$(runuser -u www-data -- git \
+            -C "$WEBROOT/gluon/packages/pydal" rev-parse HEAD)"
     printf 'rocket_commit=%s\n' \
-        "$(git -C "$WEBROOT/gluon/packages/rocket3" rev-parse HEAD)"
+        "$(runuser -u www-data -- git \
+            -C "$WEBROOT/gluon/packages/rocket3" rev-parse HEAD)"
     printf 'yatl_commit=%s\n' \
-        "$(git -C "$WEBROOT/gluon/packages/yatl" rev-parse HEAD)"
+        "$(runuser -u www-data -- git \
+            -C "$WEBROOT/gluon/packages/yatl" rev-parse HEAD)"
     printf 'remote=%s\n' "$REMOTE"
 } >"$source_tmp"
 chmod 0644 "$source_tmp"
