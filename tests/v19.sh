@@ -37,11 +37,14 @@ git_safe=(git -c safe.directory="$webroot" -C "$webroot")
 test "$("${git_safe[@]}" rev-parse HEAD)" = "$commit"
 "${git_safe[@]}" diff --quiet
 "${git_safe[@]}" diff --cached --quiet
-test "$(git -C "$webroot/gluon/packages/pydal" rev-parse HEAD)" = \
+test "$(git -c safe.directory="$webroot/gluon/packages/pydal" \
+    -C "$webroot/gluon/packages/pydal" rev-parse HEAD)" = \
     "$pydal_commit"
-test "$(git -C "$webroot/gluon/packages/rocket3" rev-parse HEAD)" = \
+test "$(git -c safe.directory="$webroot/gluon/packages/rocket3" \
+    -C "$webroot/gluon/packages/rocket3" rev-parse HEAD)" = \
     "$rocket_commit"
-test "$(git -C "$webroot/gluon/packages/yatl" rev-parse HEAD)" = \
+test "$(git -c safe.directory="$webroot/gluon/packages/yatl" \
+    -C "$webroot/gluon/packages/yatl" rev-parse HEAD)" = \
     "$yatl_commit"
 runtime_version=$(python3 -c \
     'import sys; sys.path.insert(0, sys.argv[1]); from gluon.version import VERSION; print(VERSION.split("-")[0])' \
