@@ -1,11 +1,104 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
+set -x
+
+VERSION=3.3.3
+TAG=v3.3.3
+COMMIT=a729b848ff6b6471a2792cae8156bf087afc2456
+PYDAL_COMMIT=b515c362e83006e79f681ff6491e4a4ab8566acb
+ROCKET_COMMIT=4154030489ebab15b96d1f90a6f288cf4f64dd23
+YATL_COMMIT=c6983a51909f76c48f4a40c93eea7f485321cd3f
+REMOTE=https://github.com/web2py/web2py.git
 W2PROOT=/var/www/web2py
+DB_NAME=web2py
+DB_USER=web2py
+
+install -d -m 0755 "$W2PROOT"
+git -C "$W2PROOT" init
+git -C "$W2PROOT" remote add origin "$REMOTE"
+git -C "$W2PROOT" fetch --depth 1 origin "refs/tags/$TAG:refs/tags/$TAG"
+git -C "$W2PROOT" checkout --detach "$TAG"
+test "$(git -C "$W2PROOT" rev-parse HEAD)" = "$COMMIT"
+git -C "$W2PROOT" submodule update --init --recursive --depth 1
+test "$(git -C "$W2PROOT/gluon/packages/pydal" rev-parse HEAD)" = \
+    "$PYDAL_COMMIT"
+test "$(git -C "$W2PROOT/gluon/packages/rocket3" rev-parse HEAD)" = \
+    "$ROCKET_COMMIT"
+test "$(git -C "$W2PROOT/gluon/packages/yatl" rev-parse HEAD)" = \
+    "$YATL_COMMIT"
+git -C "$W2PROOT" fsck --no-dangling
+
+# Expose the official WSGI entry point through the shared Apache overlay.
+cp "$W2PROOT/handlers/wsgihandler.py" "$W2PROOT/wsgihandler.py"
 
 # set welcome as web2py default application
-cat >$W2PROOT/routes.py<<EOF
+cat >"$W2PROOT/routes.py" <<'EOF'
 #!/usr/bin/env python
 default_application = 'welcome'
 EOF
 
-chown www-data:www-data $W2PROOT/routes.py
+service mysql start
+mysqladmin create "$DB_NAME"
+
+# Keep the persistent application credentials out of the build trace.
+set +x
+DB_PASS=$(mcookie)
+mysql --batch <<EOF
+CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
+GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';
+USE $DB_NAME;
+CREATE TABLE turnkey_status (
+    id INT PRIMARY KEY,
+    message VARCHAR(128) NOT NULL
+);
+INSERT INTO turnkey_status (id, message)
+VALUES (1, 'Database connectivity verified');
+FLUSH PRIVILEGES;
+EOF
+cat >"$W2PROOT/.turnkey-db" <<EOF
+DATABASE_URL=mysql://$DB_USER:$DB_PASS@127.0.0.1:3306/$DB_NAME
+EOF
+chmod 0640 "$W2PROOT/.turnkey-db"
+chown root:www-data "$W2PROOT/.turnkey-db"
+unset DB_PASS
+set -x
+
+install -d -m 0755 /usr/local/share/turnkey-web2py
+cat >/usr/local/share/turnkey-web2py/source <<EOF
+version=$VERSION
+tag=$TAG
+commit=$COMMIT
+pydal_commit=$PYDAL_COMMIT
+rocket_commit=$ROCKET_COMMIT
+yatl_commit=$YATL_COMMIT
+remote=$REMOTE
+EOF
+
+# Seed the database-backed runtime before firstboot rotates common credentials.
+python3 - "$W2PROOT" <<'PY'
+import sys
+
+root = sys.argv[1]
+sys.path.insert(0, root)
+from gluon import DAL
+
+with open(f"{root}/.turnkey-db", encoding="utf-8") as stream:
+    uri = stream.read().strip().split("=", 1)[1]
+db = DAL(uri, migrate=False)
+rows = db.executesql("SELECT message FROM turnkey_status WHERE id = 1")
+assert len(rows) == 1
+assert rows[0][0] == "Database connectivity verified"
+db.close()
+PY
+
+chown -R www-data:www-data "$W2PROOT"
+chown root:www-data "$W2PROOT/.turnkey-db"
+chmod 0640 "$W2PROOT/.turnkey-db"
+
+/usr/lib/inithooks/bin/web2py.py --pass=turnkey
+
+a2dissite 000-default
+a2ensite web2py
+a2enmod rewrite
+
+service mysql stop

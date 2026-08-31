@@ -1,0 +1,127 @@
+#!/bin/bash
+set -Eeuo pipefail
+
+WEBROOT=/var/www/web2py
+SOURCE=/usr/local/share/turnkey-web2py/source
+REMOTE=https://github.com/web2py/web2py.git
+
+usage() {
+    echo "Usage: $(basename "$0") --check|--apply [--dry-run]" >&2
+    exit 2
+}
+
+if [[ $# -ne 1 && ! ($# -eq 2 && $1 == --apply && $2 == --dry-run) ]]; then
+    usage
+fi
+case $1 in
+    --check|--apply) ;;
+    *) usage ;;
+esac
+
+[[ -r $SOURCE ]] || {
+    echo "Web2py source provenance is unavailable" >&2
+    exit 1
+}
+# shellcheck disable=SC1090
+. "$SOURCE"
+git_safe=(git -c safe.directory="$WEBROOT" -C "$WEBROOT")
+
+installed_commit=$("${git_safe[@]}" rev-parse HEAD)
+installed_version=$(python3 -c \
+    'import sys; sys.path.insert(0, sys.argv[1]); from gluon.version import VERSION; print(VERSION.split("-")[0])' \
+    "$WEBROOT")
+test "$installed_commit" = "$commit"
+test "$installed_version" = "$version"
+test "$("${git_safe[@]}" remote get-url origin)" = "$REMOTE"
+"${git_safe[@]}" diff --quiet
+"${git_safe[@]}" diff --cached --quiet
+
+tag_refs=$(git ls-remote --refs "$REMOTE" 'refs/tags/v3.*')
+latest_tag=$(awk '$2 ~ /^refs\/tags\/v3\.[0-9]+\.[0-9]+$/ {
+        sub("refs/tags/", "", $2); print $2
+    }' <<<"$tag_refs" | sort -V | tail -n 1)
+[[ $latest_tag =~ ^v3\.[0-9]+\.[0-9]+$ ]]
+tag_object=$(awk -v ref="refs/tags/$latest_tag" '$2 == ref {print $1}' \
+    <<<"$tag_refs")
+peeled=$(git ls-remote "$REMOTE" "refs/tags/$latest_tag^{}" |
+    awk 'NR == 1 {print $1}')
+latest_commit=${peeled:-$tag_object}
+[[ $latest_commit =~ ^[0-9a-f]{40}$ ]]
+latest_version=${latest_tag#v}
+
+status=update-available
+if [[ $installed_version == "$latest_version" && \
+      $installed_commit == "$latest_commit" ]]; then
+    status=up-to-date
+elif dpkg --compare-versions "$installed_version" gt "$latest_version"; then
+    status=newer-than-channel
+fi
+
+if [[ $1 == --check ]]; then
+    printf 'installed=%s\ninstalled_commit=%s\nlatest=%s\n' \
+        "$installed_version" "$installed_commit" "$latest_version"
+    printf 'candidate=%s\ntag=%s\nchannel=official-web2py-3.x\nstatus=%s\n' \
+        "$latest_commit" "$latest_tag" "$status"
+    exit 0
+fi
+
+if [[ ${2:-} == --dry-run ]]; then
+    printf 'mode=apply-dry-run\ntarget=%s\ncandidate=%s\n' \
+        "$latest_version" "$latest_commit"
+    printf 'tag=%s\nverified=official-web2py-tag\nstatus=%s\n' \
+        "$latest_tag" "$status"
+    exit 0
+fi
+
+test "$(id -u)" -eq 0
+if [[ $status != update-available ]]; then
+    echo "Web2py $installed_version is $status on the supported 3.x channel."
+    exit 0
+fi
+
+systemctl stop apache2.service
+trap 'systemctl start apache2.service' EXIT
+target_ref="refs/tags/$latest_tag"
+runuser -u www-data -- git -C "$WEBROOT" fetch --force --depth 1 \
+    origin "$target_ref:$target_ref"
+fetched_commit=$("${git_safe[@]}" rev-parse "$target_ref^{commit}")
+test "$fetched_commit" = "$latest_commit"
+runuser -u www-data -- git -C "$WEBROOT" checkout --detach "$target_ref"
+runuser -u www-data -- git -C "$WEBROOT" submodule sync --recursive
+runuser -u www-data -- git -C "$WEBROOT" submodule update --init --recursive \
+    --depth 1
+test "$("${git_safe[@]}" rev-parse HEAD)" = "$latest_commit"
+"${git_safe[@]}" diff --quiet
+"${git_safe[@]}" diff --cached --quiet
+cp "$WEBROOT/handlers/wsgihandler.py" "$WEBROOT/wsgihandler.py"
+
+updated_version=$(python3 -c \
+    'import sys; sys.path.insert(0, sys.argv[1]); from gluon.version import VERSION; print(VERSION.split("-")[0])' \
+    "$WEBROOT")
+test "$updated_version" = "$latest_version"
+source_tmp=$(mktemp "$SOURCE.XXXXXX")
+{
+    printf 'version=%s\n' "$latest_version"
+    printf 'tag=%s\n' "$latest_tag"
+    printf 'commit=%s\n' "$latest_commit"
+    printf 'pydal_commit=%s\n' \
+        "$(runuser -u www-data -- git \
+            -C "$WEBROOT/gluon/packages/pydal" rev-parse HEAD)"
+    printf 'rocket_commit=%s\n' \
+        "$(runuser -u www-data -- git \
+            -C "$WEBROOT/gluon/packages/rocket3" rev-parse HEAD)"
+    printf 'yatl_commit=%s\n' \
+        "$(runuser -u www-data -- git \
+            -C "$WEBROOT/gluon/packages/yatl" rev-parse HEAD)"
+    printf 'remote=%s\n' "$REMOTE"
+} >"$source_tmp"
+chmod 0644 "$source_tmp"
+mv "$source_tmp" "$SOURCE"
+
+chown -R www-data:www-data "$WEBROOT"
+chown root:www-data "$WEBROOT/.turnkey-db"
+chmod 0640 "$WEBROOT/.turnkey-db"
+systemctl start apache2.service
+trap - EXIT
+printf 'updated=%s\ncommit=%s\ntag=%s\n' \
+    "$latest_version" "$latest_commit" "$latest_tag"
